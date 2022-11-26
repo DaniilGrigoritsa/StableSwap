@@ -1,6 +1,14 @@
+import cancelAllOrders from "../logic/cancelAllOrders";
 import "../styles/Home.css";
+import { useContext } from "react";
+import { WalletContext } from "../App";
+import { GlobalContext } from "./OneInch";
 
-export function OrdersList({handleCancelingAnOrder, openedOrders}) {
+
+export function OrdersList({handleCancelingAnOrder}) {
+
+    const [web3, contractAddress, openedOrders] = useContext(GlobalContext);
+    const walletAddress = useContext(WalletContext);
 
     let ordersList = openedOrders.map((order) =>
         <div className="order" key={order.salt}>
@@ -22,6 +30,14 @@ export function OrdersList({handleCancelingAnOrder, openedOrders}) {
         return (
             <div>
                 {ordersList}
+                <button onClick={() => cancelAllOrders(
+                    web3, 
+                    walletAddress, 
+                    contractAddress, 
+                    openedOrders
+                )} className="cancel">
+                    Cancel all orders
+                </button>
             </div>
         )
     }

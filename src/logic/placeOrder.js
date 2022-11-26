@@ -2,13 +2,24 @@ import {
     LimitOrderBuilder,
     Web3ProviderConnector,
 } from '@1inch/limit-order-protocol';
+import sendTransaction from './sendTransaction';
 
 const ABI = require("../abis/Contract.json");
 
 
-const placeOrderLogic = async (web3, walletAddress, gasLimit, gasPrice, contractAddress, makingAmount, takingAmount, makerAssetAddress, takerAssetAddress, thresholdAmount, chainId) => {
+const placeOrderLogic = async (
+    web3, 
+    walletAddress, 
+    contractAddress, 
+    makingAmount, 
+    takingAmount, 
+    makerAssetAddress, 
+    takerAssetAddress, 
+    thresholdAmount, 
+    chainId
+) => {
+    
     const makerAddress = walletAddress;
-
     const connector = new Web3ProviderConnector(web3);
     const contract = new web3.eth.Contract(ABI, contractAddress);
     
@@ -57,24 +68,10 @@ const placeOrderLogic = async (web3, walletAddress, gasLimit, gasPrice, contract
     }
 
     const data = contract.methods.fillOrder(order, signature, makingAmount, takingAmount, thresholdAmount).encodeABI();
-    
-    const nonce = await web3.eth.getTransactionCount(walletAddress, 'latest');
-    
-    const transaction = {
-        'from': walletAddress,
-        'to': contractAddress,
-        'value': "0x00",
-        'gasLimit': gasLimit.toString(), 
-        'gasPrice': gasPrice.toString(),  
-        'nonce': nonce.toString(),
-        'data': data
-    };
-    
-    await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [transaction],
-      }).then((result) => {console.log(result)}).catch((error) => {console.log(error)});
-      
+    await sendTransaction(web3, walletAddress, contractAddress, data);
+
+    console.log(order)
+
     return order;
 }
 
