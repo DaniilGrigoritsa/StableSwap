@@ -42,8 +42,7 @@ export function OneInch() {
     const [makerAsset, setMakerAsset] = useState("DAI");
     const [takerAsset, setTakerAsset] = useState("DAI");
     const [tokensApproved, setTokensApproved] = useState(false);
-
-    let openedOrders = [];
+    const [openedOrders, setOpenedOrders] = useState([]);
     
     const onChangeMakerAmount = (e) => {
         const makerAmount = e.target.value;
@@ -73,8 +72,10 @@ export function OneInch() {
           thresholdAmount, 
           chainId
         );
-
-        openedOrders.push(order);
+        
+        const orders = openedOrders;
+        orders.push(order);
+        setOpenedOrders(orders);
         setTokensApproved(false);
       }
     }
@@ -161,7 +162,7 @@ export function OneInch() {
             <button onClick={() => handleTokensApprove()} className="submit">Approve {makerAsset}</button>
           }
           <div className="order-list">
-            <OrdersList handleCancelingAnOrder={handleCancelingAnOrder} />
+            <OrdersList handleCancelingAnOrder={handleCancelingAnOrder} setOpenedOrders={setOpenedOrders} />
           </div>
         </div>
       </GlobalContext.Provider>

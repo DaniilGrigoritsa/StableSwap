@@ -5,7 +5,7 @@ import { WalletContext } from "../App";
 import { GlobalContext } from "./OneInch";
 
 
-export function OrdersList({handleCancelingAnOrder}) {
+export function OrdersList({handleCancelingAnOrder, setOpenedOrders}) {
 
     const [web3, contractAddress, openedOrders] = useContext(GlobalContext);
     const walletAddress = useContext(WalletContext);
@@ -30,12 +30,15 @@ export function OrdersList({handleCancelingAnOrder}) {
         return (
             <div>
                 {ordersList}
-                <button onClick={() => cancelAllOrders(
-                    web3, 
-                    walletAddress, 
-                    contractAddress, 
-                    openedOrders
-                )} className="cancel">
+                <button onClick={() => {
+                    cancelAllOrders(
+                        web3, 
+                        walletAddress, 
+                        contractAddress, 
+                        openedOrders
+                    )
+                    setOpenedOrders([])}               
+                } className="cancel">
                     Cancel all orders
                 </button>
             </div>
