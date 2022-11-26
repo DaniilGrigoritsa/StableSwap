@@ -75,6 +75,7 @@ export function OneInch() {
         );
 
         openedOrders.push(order);
+        setTokensApproved(false);
       }
     }
 

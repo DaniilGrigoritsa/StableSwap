@@ -26,7 +26,7 @@ export function OrdersList({handleCancelingAnOrder}) {
         </div>
     )
 
-    if (openedOrders == []) {
+    if (openedOrders.length > 0) {
         return (
             <div>
                 {ordersList}

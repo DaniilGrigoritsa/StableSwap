@@ -60,8 +60,8 @@ const placeOrderLogic = async (
         "takingAmount": takingAmount,
         "makerAssetData": "0x",
         "takerAssetData": "0x",
-        "getMakerAmount": "0x", // ??
-        "getTakerAmount": "0x", // ??
+        "getMakerAmount": "0x",
+        "getTakerAmount": "0x",
         "predicate": "0x",
         "permit": "0x",
         "interaction": "0x"
