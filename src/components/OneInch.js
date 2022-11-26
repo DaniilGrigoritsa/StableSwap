@@ -9,6 +9,12 @@ import { WalletContext } from "../App";
 
 const ERC20ABI = require("../abis/ERC20ABI.json");
 
+
+const WSProvider = "wss://mainnet.infura.io/ws/v3/1ab91169b78e4abca0ea58de59de04d0";
+let provider = new Web3.providers.WebsocketProvider(WSProvider);
+const infura = new Web3(provider);
+
+
 const web3 = new Web3(window.ethereum);
 window.ethereum.enable(); 
 
@@ -52,9 +58,9 @@ export function OneInch() {
     const handlePlacingAnOrder = async () => {
       if (makerAmount > 0 && takerAmount > 0 && makerAsset != takerAsset) {
         let decimals = await getTokenDecimals(assets[makerAsset]);
-        const actualMakerAmount = web3.utils.toBN("0x"+(makerAmount*10*decimals).toString(16));
+        const actualMakerAmount = String(makerAmount).padEnd(decimals, 0);
         decimals = await getTokenDecimals(assets[takerAsset]);
-        const actualTakerAmount = web3.utils.toBN("0x"+(takerAmount*10*decimals).toString(16));
+        const actualTakerAmount =String(takerAmount).padEnd(decimals, 0);
 
         const order = await placeOrderLogic(
           web3, 
@@ -89,7 +95,7 @@ export function OneInch() {
       const decimals = await getTokenDecimals(makerAssetAddress);
 
       if(decimals) {
-        const actualMakerAmount = web3.utils.toBN("0x"+(makerAmount*10*decimals).toString(16));
+        const actualMakerAmount = String(makerAmount).padEnd(decimals, 0);
         const token = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
         const data = token.methods.approve(contractAddress, actualMakerAmount).encodeABI();
         const success = await sendTransaction(web3, walletAddress, makerAssetAddress, data);
@@ -99,16 +105,20 @@ export function OneInch() {
     }
 
     const getTokenDecimals = async (tokenAddress) => {
-      const token = new web3.eth.Contract(ERC20ABI, tokenAddress);
+      const token = new infura.eth.Contract(ERC20ABI, tokenAddress);
+      let decimals;
 
-      token.methods.decimals().call()
-        .then((decimals) => {
-          return decimals;
+      await token.methods.decimals().call()
+        .then((result) => {
+          console.log(result);
+          decimals = result;
         })
         .catch((error) => {
-          console.log(error);
-          return 0;
+          console.log(error)
+          decimals = 0;
         })
+
+      return decimals;
     }
     
     return (
