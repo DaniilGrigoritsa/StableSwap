@@ -9,6 +9,7 @@ const cancelOrderLogic = async (
     contractAddress, 
     canceledOrder
 ) => {
+    console.log(walletAddress)
     const contract = new web3.eth.Contract(ABI, contractAddress);
     const data = contract.methods.cancelOrder(canceledOrder).encodeABI();
     

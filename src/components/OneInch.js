@@ -5,6 +5,7 @@ import placeOrderLogic from "../logic/placeOrder";
 import { OrdersList } from "./OrdrersList";
 import sendTransaction from "../logic/sendTransaction";
 import { WalletContext } from "../App";
+import remove from "../scripts/removeItem";
 
 
 const ERC20ABI = require("../abis/ERC20ABI.json");
@@ -12,7 +13,7 @@ const ERC20ABI = require("../abis/ERC20ABI.json");
 const web3 = new Web3(window.ethereum);
 window.ethereum.enable(); 
 
-const contractAddress = "0x94Bc2a1C732BcAd7343B25af48385Fe76E08734f"; //0x741f64d0b90F2f9Bc45f0C4b8b8d716c52F1c529
+const contractAddress = "0x94Bc2a1C732BcAd7343B25af48385Fe76E08734f";
 const chainId = 137; // 80001 Mumbai
 
 export const GlobalContext = createContext();
@@ -24,9 +25,9 @@ export function OneInch() {
 
     // может быть добавлено множество различных токенов 
     const assets = {
-      "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+      "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", 
       "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "WETH": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      "WETH": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", 
       "1Inch": "0x9c2C5fd7b07E95EE044DDeba0E97a665F142394f",
       "MATIC": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
     }
@@ -38,6 +39,8 @@ export function OneInch() {
     const [takerAsset, setTakerAsset] = useState("DAI");
     const [tokensApproved, setTokensApproved] = useState(false);
     const [openedOrders, setOpenedOrders] = useState([]);
+
+    console.log(tokensApproved)
     
     const onChangeMakerAmount = (e) => {
         const makerAmount = e.target.value;
@@ -78,11 +81,12 @@ export function OneInch() {
     const handleCancelingAnOrder = async (canceledOrder) => {
       await cancelOrderLogic(
         web3, 
-        contractAddress, 
         walletAddress, 
+        contractAddress, 
         canceledOrder
       );
-      openedOrders.remove(canceledOrder);
+      const orders = remove(openedOrders, canceledOrder);
+      setOpenedOrders(orders);
     }
 
     const handleTokensApprove = async () => {

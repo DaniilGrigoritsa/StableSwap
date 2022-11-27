@@ -4,7 +4,7 @@ import { App } from "./App";
 import { ChainId, ThirdwebProvider } from "@thirdweb-dev/react";
 import "./styles/globals.css";
 
-const activeChainId = ChainId.Polygon;
+const activeChainId = ChainId.Polygon
 
 const container = document.getElementById("root");
 const root = createRoot(container);

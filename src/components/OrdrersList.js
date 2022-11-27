@@ -10,6 +10,8 @@ export function OrdersList({handleCancelingAnOrder, setOpenedOrders}) {
     const [web3, contractAddress, openedOrders] = useContext(GlobalContext);
     const walletAddress = useContext(WalletContext);
 
+    console.log(openedOrders)
+    
     let ordersList = openedOrders.map((order) =>
         <div className="order" key={order.salt}>
             <span>
