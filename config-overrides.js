@@ -36,6 +36,7 @@ module.exports = function override(config) {
       {
         module: /node_modules\/@gnosis.pm/,
       },
+      /Failed to parse source map/
     ],
   };
 };

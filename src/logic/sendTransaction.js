@@ -1,5 +1,5 @@
 const sendTransaction = async (web3, from, to, data) => {
-    const success = false;
+    let success = false;
     const nonce = await web3.eth.getTransactionCount(from, 'latest');
 
     const transaction = {

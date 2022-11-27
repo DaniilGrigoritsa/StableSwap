@@ -1,4 +1,4 @@
-import { useContext, createContext } from "react";
+import { createContext } from "react";
 import { useAddress } from "@thirdweb-dev/react"
 
 import "./styles/Home.css";

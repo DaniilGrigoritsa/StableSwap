@@ -50,7 +50,7 @@ export function OneInch() {
     };
 
     const handlePlacingAnOrder = async () => {
-      if (makerAmount > 0 && takerAmount > 0 && makerAsset != takerAsset) {
+      if (makerAmount > 0 && takerAmount > 0 && makerAsset !== takerAsset) {
         let decimals = await getTokenDecimals(assets[makerAsset]);
         const actualMakerAmount = String(makerAmount*10**decimals)
         decimals = await getTokenDecimals(assets[takerAsset]);
