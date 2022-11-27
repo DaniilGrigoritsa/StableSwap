@@ -9,12 +9,6 @@ import { WalletContext } from "../App";
 
 const ERC20ABI = require("../abis/ERC20ABI.json");
 
-
-const WSProvider = "wss://mainnet.infura.io/ws/v3/1ab91169b78e4abca0ea58de59de04d0";
-let provider = new Web3.providers.WebsocketProvider(WSProvider);
-const infura = new Web3(provider);
-
-
 const web3 = new Web3(window.ethereum);
 window.ethereum.enable(); 
 
@@ -30,10 +24,11 @@ export function OneInch() {
 
     // может быть добавлено множество различных токенов 
     const assets = {
-      "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      "1Inch": "0x111111111117dC0aa78b770fA6A738034120C302"
+      "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+      "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+      "WETH": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      "1Inch": "0x9c2C5fd7b07E95EE044DDeba0E97a665F142394f",
+      "MATIC": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
     }
 
     const [makerAmount, setMakerAmount] = useState('');
@@ -57,9 +52,9 @@ export function OneInch() {
     const handlePlacingAnOrder = async () => {
       if (makerAmount > 0 && takerAmount > 0 && makerAsset != takerAsset) {
         let decimals = await getTokenDecimals(assets[makerAsset]);
-        const actualMakerAmount = String(makerAmount).padEnd(decimals, 0);
+        const actualMakerAmount = String(makerAmount*10**decimals)
         decimals = await getTokenDecimals(assets[takerAsset]);
-        const actualTakerAmount =String(takerAmount).padEnd(decimals, 0);
+        const actualTakerAmount = String(takerAmount*10**decimals);
 
         const order = await placeOrderLogic(
           web3, 
@@ -97,7 +92,8 @@ export function OneInch() {
       const decimals = await getTokenDecimals(makerAssetAddress);
 
       if(decimals) {
-        const actualMakerAmount = String(makerAmount).padEnd(decimals, 0);
+        const actualMakerAmount = String(makerAmount*10**decimals);
+        console.log(actualMakerAmount);
         const token = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
         const data = token.methods.approve(contractAddress, actualMakerAmount).encodeABI();
         const success = await sendTransaction(web3, walletAddress, makerAssetAddress, data);
@@ -107,7 +103,7 @@ export function OneInch() {
     }
 
     const getTokenDecimals = async (tokenAddress) => {
-      const token = new infura.eth.Contract(ERC20ABI, tokenAddress);
+      const token = new web3.eth.Contract(ERC20ABI, tokenAddress);
       let decimals;
 
       await token.methods.decimals().call()
