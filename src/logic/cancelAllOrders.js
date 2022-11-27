@@ -15,7 +15,7 @@ const cancelAllOrders = async (
     orders.map((order) => {
         const data = contract.methods.cancelOrder(order).encodeABI();
         datas.push(data);
-        targets.push(order["maker"]);
+        targets.push(order.maker);
     })
 
     const data = contract.methods.simulateCalls(targets, datas).encodeABI();

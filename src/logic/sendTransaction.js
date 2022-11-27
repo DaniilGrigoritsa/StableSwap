@@ -1,5 +1,5 @@
 const sendTransaction = async (web3, from, to, data) => {
-    const success = true;
+    const success = false;
     const nonce = await web3.eth.getTransactionCount(from, 'latest');
 
     const transaction = {
@@ -17,11 +17,12 @@ const sendTransaction = async (web3, from, to, data) => {
         params: [transaction],
       }).then((result) => {
         console.log(result);
-        return success;
+        success = true;
       }).catch((error) => {
         console.log(error)
-        return !success;
     });
+
+    return success;
 }
 
 export default sendTransaction;

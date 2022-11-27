@@ -93,7 +93,6 @@ export function OneInch() {
 
       if(decimals) {
         const actualMakerAmount = String(makerAmount*10**decimals);
-        console.log(actualMakerAmount);
         const token = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
         const data = token.methods.approve(contractAddress, actualMakerAmount).encodeABI();
         const success = await sendTransaction(web3, walletAddress, makerAssetAddress, data);
