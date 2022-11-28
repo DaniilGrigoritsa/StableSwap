@@ -18,9 +18,6 @@ const chainId = 137;
 export const GlobalContext = createContext();
 
 
-//{"salt":"1641978125953","makerAsset":"0x2AB0e9e4eE70FFf1fB9D67031E44F6410170d00e","takerAsset":"0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270","maker":"0xC619eDa298D09B54401C1E3C4652D982Ff7489Cd","receiver":"0x0000000000000000000000000000000000000000","allowedSender":"0x0000000000000000000000000000000000000000","makingAmount":"1000000000000000000","takingAmount":"30000000000","makerAssetData":"0x","takerAssetData":"0x","getMakerAmount":"0xf4a215c30000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000006fc23ac00","getTakerAmount":"0x296637bf0000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000006fc23ac00","predicate":"0x63592c2b000000000000000000000000000000000000000000000000000000006380d042","permit":"0x","interaction":"0x"}
-
-
 export function OneInch() {
 
     const walletAddress = useContext(WalletContext);
@@ -38,7 +35,7 @@ export function OneInch() {
     const [takerAmount, setTakerAmount] = useState('');
     const [makerAsset, setMakerAsset] = useState("DAI");
     const [takerAsset, setTakerAsset] = useState("DAI");
-    const [tokensApproved, setTokensApproved] = useState(true);  // set to false
+    const [tokensApproved, setTokensApproved] = useState(false);
     
     const onChangeMakerAmount = (e) => {
         const makerAmount = e.target.value;
