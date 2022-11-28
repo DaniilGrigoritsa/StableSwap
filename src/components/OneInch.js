@@ -18,6 +18,9 @@ const chainId = 137;
 export const GlobalContext = createContext();
 
 
+//{"salt":"1641978125953","makerAsset":"0x2AB0e9e4eE70FFf1fB9D67031E44F6410170d00e","takerAsset":"0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270","maker":"0xC619eDa298D09B54401C1E3C4652D982Ff7489Cd","receiver":"0x0000000000000000000000000000000000000000","allowedSender":"0x0000000000000000000000000000000000000000","makingAmount":"1000000000000000000","takingAmount":"30000000000","makerAssetData":"0x","takerAssetData":"0x","getMakerAmount":"0xf4a215c30000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000006fc23ac00","getTakerAmount":"0x296637bf0000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000006fc23ac00","predicate":"0x63592c2b000000000000000000000000000000000000000000000000000000006380d042","permit":"0x","interaction":"0x"}
+
+
 export function OneInch() {
 
     const walletAddress = useContext(WalletContext);
@@ -33,10 +36,9 @@ export function OneInch() {
 
     const [makerAmount, setMakerAmount] = useState('');
     const [takerAmount, setTakerAmount] = useState('');
-    const [thresholdAmount, setThresholdAmount] = useState("0");
     const [makerAsset, setMakerAsset] = useState("DAI");
     const [takerAsset, setTakerAsset] = useState("DAI");
-    const [tokensApproved, setTokensApproved] = useState(true);
+    const [tokensApproved, setTokensApproved] = useState(true);  // set to false
     
     const onChangeMakerAmount = (e) => {
         const makerAmount = e.target.value;
@@ -49,20 +51,13 @@ export function OneInch() {
     };
 
     const handlePlacingAnOrder = async () => {
-      if ((makerAmount > 0 || takerAmount > 0 ) && makerAsset !== takerAsset) {
-        let actualMakerAmount;
-        let actualTakerAmount;
-
-        if (makerAmount > 0) {
-          let decimals = await getTokenDecimals(assets[makerAsset]);
-          actualMakerAmount = String(makerAmount*10**decimals);
-          actualTakerAmount = '0';
-        }
-        else {
-          let decimals = await getTokenDecimals(assets[takerAsset]);
-          actualTakerAmount = String(takerAmount*10**decimals);
-          actualMakerAmount = '0';
-        }
+      let decimals;
+      if (makerAmount > 0 && takerAmount > 0  && makerAsset !== takerAsset) {
+        decimals = await getTokenDecimals(assets[makerAsset]);
+        const actualMakerAmount = String(makerAmount*10**decimals);
+        decimals = await getTokenDecimals(assets[takerAsset]);
+        const actualTakerAmount = String(takerAmount*10**decimals);
+        const thresholdAmount = actualTakerAmount;
 
         const success = await placeOrderLogic(
           web3, 

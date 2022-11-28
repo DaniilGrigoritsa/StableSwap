@@ -1,9 +1,7 @@
 import {
     LimitOrderBuilder,
     Web3ProviderConnector,
-    LimitOrderProtocolFacade,
-    LimitOrder,
-    LimitOrderSignature
+    LimitOrderProtocolFacade
 } from '@1inch/limit-order-protocol';
 import sendTransaction from './sendTransaction';
 
@@ -22,7 +20,6 @@ const placeOrderLogic = async (
     
     const makerAddress = web3.utils.toChecksumAddress(walletAddress);
     const connector = new Web3ProviderConnector(web3);
-    const salt = Math.floor(Math.random() * 10 ** 12);
     
     const limitOrderBuilder = new LimitOrderBuilder(
         contractAddress,
@@ -36,9 +33,9 @@ const placeOrderLogic = async (
         makerAddress: makerAddress, 
         makerAmount: makingAmount,
         takerAmount: takingAmount,
-        predicate: '0x0',
-        permit: '0x0',
-        interaction: '0x0',
+        predicate: '0x',
+        permit: '0x',
+        interaction: '0x',
     });
 
     const limitOrderTypedData = limitOrderBuilder.buildLimitOrderTypedData(
@@ -50,33 +47,29 @@ const placeOrderLogic = async (
         limitOrderTypedData
     );
 
+    console.log(signature)
+    console.log(limitOrder.salt)
+    console.log("Maker data", limitOrder.getMakerAmount)
+    console.log("Taker data", limitOrder.getTakerAmount)
+
     const limitOrderProtocolFacade = new LimitOrderProtocolFacade(contractAddress, connector);
 
-    const order = {
-        "salt": salt.toString(),
-        "makerAsset": makerAssetAddress,
-        "takerAsset": takerAssetAddress,
-        "maker": makerAddress,
-        "receiver": "0x0000000000000000000000000000000000000000",
-        "allowedSender": "0x0000000000000000000000000000000000000000",
-        "makingAmount": makingAmount,
-        "takingAmount": takingAmount,
-        "makerAssetData": "0x",
-        "takerAssetData": "0x",
-        "getMakerAmount": "0x",
-        "getTakerAmount": "0x",
-        "predicate": "0x",
-        "permit": "0x",
-        "interaction": "0x"
-    }
+    console.log("makingAmount:", makingAmount);
+    console.log("takingAmount:", takingAmount);
+
+    takingAmount = "0";
+
+    console.log("thresholdAmount", thresholdAmount)
 
     const callData = limitOrderProtocolFacade.fillLimitOrder(
-        order,
+        limitOrder,
         signature,
         makingAmount,
-        takingAmount,
-        thresholdAmount
+        takingAmount, 
+        thresholdAmount 
     );
+
+    console.log("calldata", callData)
     
     const success = await sendTransaction(web3, walletAddress, contractAddress, callData);
     return success;

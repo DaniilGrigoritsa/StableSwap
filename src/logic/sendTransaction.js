@@ -6,7 +6,7 @@ const sendTransaction = async (web3, from, to, data) => {
         from: from,
         to: to,
         value: "0x00",  
-        gas: "500000",
+        gas: "50000",
         nonce: nonce.toString(),
         data: data
     };
