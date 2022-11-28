@@ -5,7 +5,6 @@ import placeOrderLogic from "../logic/placeOrder";
 import { OrdersList } from "./OrdrersList";
 import sendTransaction from "../logic/sendTransaction";
 import { WalletContext } from "../App";
-import remove from "../scripts/removeItem";
 
 
 const ERC20ABI = require("../abis/ERC20ABI.json");
@@ -13,8 +12,8 @@ const ERC20ABI = require("../abis/ERC20ABI.json");
 const web3 = new Web3(window.ethereum);
 window.ethereum.enable(); 
 
-const contractAddress = "0x94Bc2a1C732BcAd7343B25af48385Fe76E08734f";
-const chainId = 137; // 80001 Mumbai
+const contractAddress = "0x94Bc2a1C732BcAd7343B25af48385Fe76E08734f"; 
+const chainId = 137;
 
 export const GlobalContext = createContext();
 
@@ -34,13 +33,10 @@ export function OneInch() {
 
     const [makerAmount, setMakerAmount] = useState('');
     const [takerAmount, setTakerAmount] = useState('');
-    const [thresholdAmount, setThresholdAmount] = useState(0);
+    const [thresholdAmount, setThresholdAmount] = useState("0");
     const [makerAsset, setMakerAsset] = useState("DAI");
     const [takerAsset, setTakerAsset] = useState("DAI");
-    const [tokensApproved, setTokensApproved] = useState(false);
-    const [openedOrders, setOpenedOrders] = useState([]);
-
-    console.log(tokensApproved)
+    const [tokensApproved, setTokensApproved] = useState(true);
     
     const onChangeMakerAmount = (e) => {
         const makerAmount = e.target.value;
@@ -53,13 +49,22 @@ export function OneInch() {
     };
 
     const handlePlacingAnOrder = async () => {
-      if (makerAmount > 0 && takerAmount > 0 && makerAsset !== takerAsset) {
-        let decimals = await getTokenDecimals(assets[makerAsset]);
-        const actualMakerAmount = String(makerAmount*10**decimals)
-        decimals = await getTokenDecimals(assets[takerAsset]);
-        const actualTakerAmount = String(takerAmount*10**decimals);
+      if ((makerAmount > 0 || takerAmount > 0 ) && makerAsset !== takerAsset) {
+        let actualMakerAmount;
+        let actualTakerAmount;
 
-        const order = await placeOrderLogic(
+        if (makerAmount > 0) {
+          let decimals = await getTokenDecimals(assets[makerAsset]);
+          actualMakerAmount = String(makerAmount*10**decimals);
+          actualTakerAmount = '0';
+        }
+        else {
+          let decimals = await getTokenDecimals(assets[takerAsset]);
+          actualTakerAmount = String(takerAmount*10**decimals);
+          actualMakerAmount = '0';
+        }
+
+        const success = await placeOrderLogic(
           web3, 
           walletAddress,  
           contractAddress, 
@@ -70,11 +75,10 @@ export function OneInch() {
           thresholdAmount, 
           chainId
         );
-        
-        const orders = openedOrders;
-        orders.push(order);
-        setOpenedOrders(orders);
-        setTokensApproved(false);
+
+        console.log(success)
+
+        if (success) setTokensApproved(false);
       }
     }
 
@@ -85,8 +89,6 @@ export function OneInch() {
         contractAddress, 
         canceledOrder
       );
-      const orders = remove(openedOrders, canceledOrder);
-      setOpenedOrders(orders);
     }
 
     const handleTokensApprove = async () => {
@@ -95,13 +97,13 @@ export function OneInch() {
       // correct amount to approve by decimals
       const decimals = await getTokenDecimals(makerAssetAddress);
 
-      if(decimals) {
+      if (decimals) {
         const actualMakerAmount = String(makerAmount*10**decimals);
         const token = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
         const data = token.methods.approve(contractAddress, actualMakerAmount).encodeABI();
         const success = await sendTransaction(web3, walletAddress, makerAssetAddress, data);
       
-        if(success) setTokensApproved(true);
+        if (success) setTokensApproved(true);
       }
     }
 
@@ -123,7 +125,7 @@ export function OneInch() {
     }
     
     return (
-      <GlobalContext.Provider value={[web3, contractAddress, openedOrders]}>
+      <GlobalContext.Provider value={[web3, contractAddress]}>
         <div className="main">
           <div className="wrapper">
             <div className="select">
@@ -161,7 +163,7 @@ export function OneInch() {
             <button onClick={() => handleTokensApprove()} className="submit">Approve {makerAsset}</button>
           }
           <div className="order-list">
-            <OrdersList handleCancelingAnOrder={handleCancelingAnOrder} setOpenedOrders={setOpenedOrders} />
+            <OrdersList handleCancelingAnOrder={handleCancelingAnOrder} />
           </div>
         </div>
       </GlobalContext.Provider>

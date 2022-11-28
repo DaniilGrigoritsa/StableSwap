@@ -1,6 +1,9 @@
+import {
+    LimitOrderProtocolFacade,
+    LimitOrder,
+    Web3ProviderConnector
+} from '@1inch/limit-order-protocol';
 import sendTransaction from './sendTransaction';
-
-const ABI = require("../abis/Contract.json");
 
 
 const cancelOrderLogic = async (
@@ -9,11 +12,11 @@ const cancelOrderLogic = async (
     contractAddress, 
     canceledOrder
 ) => {
-    console.log(walletAddress)
-    const contract = new web3.eth.Contract(ABI, contractAddress);
-    const data = contract.methods.cancelOrder(canceledOrder).encodeABI();
-    
-    await sendTransaction(web3, walletAddress, contractAddress, data);
+    const connector = new Web3ProviderConnector(web3);
+    const limitOrderProtocolFacade = new LimitOrderProtocolFacade(contractAddress, connector);
+    const callData = limitOrderProtocolFacade.cancelLimitOrder(canceledOrder);
+
+    await sendTransaction(web3, walletAddress, contractAddress, callData);
 }
 
 export default cancelOrderLogic;
