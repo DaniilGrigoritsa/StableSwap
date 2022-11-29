@@ -3,7 +3,6 @@ import {
     Web3ProviderConnector,
     LimitOrderProtocolFacade
 } from '@1inch/limit-order-protocol';
-import sendTransaction from './sendTransaction';
 
 
 const placeOrderLogic = async (
@@ -47,32 +46,24 @@ const placeOrderLogic = async (
         limitOrderTypedData
     );
 
-    console.log(signature)
-    console.log(limitOrder.salt)
-    console.log("Maker data", limitOrder.getMakerAmount)
-    console.log("Taker data", limitOrder.getTakerAmount)
-
-    const limitOrderProtocolFacade = new LimitOrderProtocolFacade(contractAddress, connector);
-
-    console.log("makingAmount:", makingAmount);
-    console.log("takingAmount:", takingAmount);
-
-    takingAmount = "0";
-
-    console.log("thresholdAmount", thresholdAmount)
-
-    const callData = limitOrderProtocolFacade.fillLimitOrder(
-        limitOrder,
-        signature,
-        makingAmount,
-        takingAmount, 
-        thresholdAmount 
+    const limitOrderHash = limitOrderBuilder.buildLimitOrderHash(
+        limitOrderTypedData
     );
 
-    console.log("calldata", callData)
-    
-    const success = await sendTransaction(web3, walletAddress, contractAddress, callData);
-    return success;
+        
+    const order = fetch('https://limit-orders.1inch.io/v2.0/137/limit-order', {
+        method: 'POST',
+            headers: {
+                'content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "orderHash": limitOrderHash,
+                "signature": signature,
+                "data": limitOrder
+            })
+    })
+
+    return order;
 }
 
 export default placeOrderLogic;

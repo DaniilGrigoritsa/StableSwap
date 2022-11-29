@@ -1,6 +1,5 @@
 import {
     LimitOrderProtocolFacade,
-    LimitOrder,
     Web3ProviderConnector
 } from '@1inch/limit-order-protocol';
 import sendTransaction from './sendTransaction';

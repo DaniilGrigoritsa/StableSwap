@@ -13,20 +13,30 @@ export function OrdersList({handleCancelingAnOrder}) {
     const walletAddress = useContext(WalletContext);
     let orders = [];
 
-    //const walletAddress1 = "0xbD9dff9A86fda1230D1C44fFf811791BAd16B48a";
-
     const url = `https://limit-orders.1inch.io/v2.0/137/limit-order/address/${walletAddress}?page=1&statuses=%5B1%2C2%2C3%5D`;
     
     useEffect(() => {
         const fetchData = async () => {
-            const result = await fetch(url);
-            setOrdersList(await result.json());
+            let array = [];
+            const _result = await fetch(url);
+            const result = await _result.json();
+
+            
+            for (let iter = 0; iter < result.length; iter++) {
+                let obj = result[iter];
+                if (!obj.orderInvalidReason) {
+                    array.push(obj);
+                }
+            }
+
+            setOrdersList(array);
         }
         fetchData();
-    }, [])
+    }, [orders])
 
     if (ordersList.length > 0) {
-        orders = ordersList.map((order) =>
+        orders = ordersList.map((order) => 
+            order.orderInvalidReason? null :
             <div className="order" key={order.data.salt}>
                 <span>
                     <p>Maker amount: {order.data.makingAmount}</p>
@@ -43,7 +53,7 @@ export function OrdersList({handleCancelingAnOrder}) {
         )
     }
 
-    if (ordersList.length > 0) {
+    if (orders.length > 0) {
         return (
             <div>
                 {orders}
@@ -51,7 +61,8 @@ export function OrdersList({handleCancelingAnOrder}) {
                     cancelAllOrders(
                         web3, 
                         walletAddress, 
-                        contractAddress
+                        contractAddress,
+                        ordersList
                     )            
                 } className="cancel">
                     Cancel all orders
