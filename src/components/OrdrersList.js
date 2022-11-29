@@ -61,8 +61,7 @@ export function OrdersList({handleCancelingAnOrder}) {
                     cancelAllOrders(
                         web3, 
                         walletAddress, 
-                        contractAddress,
-                        ordersList
+                        contractAddress
                     )            
                 } className="cancel">
                     Cancel all orders

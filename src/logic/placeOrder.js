@@ -1,7 +1,8 @@
 import {
     LimitOrderBuilder,
     Web3ProviderConnector,
-    LimitOrderProtocolFacade
+    LimitOrderProtocolFacade,
+    LimitOrderPredicateBuilder
 } from '@1inch/limit-order-protocol';
 
 
@@ -25,6 +26,16 @@ const placeOrderLogic = async (
         chainId,
         connector
     );
+
+    const limitOrderProtocolFacade = new LimitOrderProtocolFacade(contractAddress, connector);
+
+    const nonce = await limitOrderProtocolFacade.nonce(contractAddress);
+
+    const limitOrderPredicateBuilder = new LimitOrderPredicateBuilder(
+        limitOrderProtocolFacade
+    );
+
+    const predicate = limitOrderPredicateBuilder.nonceEquals(walletAddress, nonce);
     
     const limitOrder = limitOrderBuilder.buildLimitOrder({
         makerAssetAddress: makerAssetAddress,
@@ -32,7 +43,7 @@ const placeOrderLogic = async (
         makerAddress: makerAddress, 
         makerAmount: makingAmount,
         takerAmount: takingAmount,
-        predicate: '0x',
+        predicate: predicate,
         permit: '0x',
         interaction: '0x',
     });
@@ -51,7 +62,7 @@ const placeOrderLogic = async (
     );
 
         
-    const order = fetch('https://limit-orders.1inch.io/v2.0/137/limit-order', {
+    fetch('https://limit-orders.1inch.io/v2.0/137/limit-order', {
         method: 'POST',
             headers: {
                 'content-Type': 'application/json',
@@ -62,8 +73,6 @@ const placeOrderLogic = async (
                 "data": limitOrder
             })
     })
-
-    return order;
 }
 
 export default placeOrderLogic;

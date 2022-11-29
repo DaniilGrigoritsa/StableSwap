@@ -1,27 +1,24 @@
 import  sendTransaction  from './sendTransaction';
+import {
+    Web3ProviderConnector,
+    LimitOrderProtocolFacade
+} from '@1inch/limit-order-protocol';
 
-const ABI = require("../abis/Contract.json");
 
 const cancelAllOrders = async (
     web3, 
     walletAddress, 
-    contractAddress, 
-    orders
+    contractAddress,
 ) => {
+    const connector = new Web3ProviderConnector(web3);
 
-    const contract = new web3.eth.Contract(ABI, contractAddress);
-    const targets = [];
-    const datas = [];
-
-    orders.map((order) => {
-        console.log(orders)
-        const data = contract.methods.cancelOrder(order.data).encodeABI();
-        datas.push(data);
-        targets.push(contractAddress);
-    })
-
-    const callData = contract.methods.simulateCalls(targets, datas).encodeABI();
-
+    const limitOrderProtocolFacade = new LimitOrderProtocolFacade(
+        contractAddress,
+        connector
+    );
+    
+    const callData = limitOrderProtocolFacade.increaseNonce();
+    
     await sendTransaction(web3, walletAddress, contractAddress, callData);
 }
 
