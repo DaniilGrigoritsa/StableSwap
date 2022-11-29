@@ -83,19 +83,26 @@ export function OneInch() {
       );
     }
 
+
     const handleTokensApprove = async () => {
       const makerAssetAddress = assets[makerAsset];
+      const takerAssetAddress = assets[takerAsset];
 
-      // correct amount to approve by decimals
-      const decimals = await getTokenDecimals(makerAssetAddress);
+      const decimals0 = await getTokenDecimals(makerAssetAddress);
+      const decimals1 = await getTokenDecimals(takerAssetAddress);
 
-      if (decimals) {
-        const actualMakerAmount = String(makerAmount*10**decimals);
-        const token = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
-        const data = token.methods.approve(contractAddress, actualMakerAmount).encodeABI();
-        const success = await sendTransaction(web3, walletAddress, makerAssetAddress, data);
+      if (decimals0 && decimals1) {
+        const actualMakerAmount = String(makerAmount*10**decimals0);
+        const token0 = new web3.eth.Contract(ERC20ABI, makerAssetAddress);
+        const data0 = token0.methods.approve(contractAddress, actualMakerAmount).encodeABI();
+        const success0 = await sendTransaction(web3, walletAddress, makerAssetAddress, data0);
+
+        const actualTakerAmount = String(takerAmount*10**decimals1);
+        const token1 = new web3.eth.Contract(ERC20ABI, takerAssetAddress);
+        const data1 = token1.methods.approve(contractAddress, actualTakerAmount).encodeABI();
+        const success1 = await sendTransaction(web3, walletAddress, takerAssetAddress, data1);
       
-        if (success) setTokensApproved(true);
+        if (success0 && success1) setTokensApproved(true);
       }
     }
 
@@ -152,7 +159,7 @@ export function OneInch() {
           {tokensApproved?
             <button onClick={() => handlePlacingAnOrder()} className="submit">Create an order</button>
             :
-            <button onClick={() => handleTokensApprove()} className="submit">Approve {makerAsset}</button>
+            <button onClick={() => handleTokensApprove()} className="submit">Approve {makerAsset} and {takerAsset}</button>
           }
           <div className="order-list">
             <OrdersList handleCancelingAnOrder={handleCancelingAnOrder} />
