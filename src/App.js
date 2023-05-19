@@ -1,11 +1,10 @@
 import { createContext } from "react";
-import { useAddress } from "@thirdweb-dev/react"
+import { useAddress } from "@thirdweb-dev/react";
+import { Navbar } from "./components/Navbar";
 
 import "./styles/Home.css";
+import { MainPage } from "./components/MainPage";
 
-import { LogIn } from "./components/LogIn";
-import { Navbar } from "./components/Navbar";
-import { OneInch } from "./components/OneInch";
 
 export const WalletContext = createContext();
 
@@ -17,8 +16,8 @@ export function App() {
     <WalletContext.Provider value={address}>
       <div className="container">
       <main className="main">
-        <Navbar />
-        {!address? <LogIn /> : <OneInch />}
+        <Navbar/>
+        <MainPage/>
       </main>
     </div>
     </WalletContext.Provider>
