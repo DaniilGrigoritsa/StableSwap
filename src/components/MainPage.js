@@ -1,34 +1,35 @@
 import Web3 from "web3";
 import { useState, useContext, createContext } from "react";
 import { WalletContext } from "../App";
-import SupportedBlockchainsData from "../scripts/networks.js";
+import { Link } from "react-router-dom";
+import SupportedBlockchainsData from "../scripts/networks";
 import sendTransaction from "../scripts/swapWithV3";
 import cross from'../img/cross.png';
 
 const web3 = new Web3(window.ethereum);
-window.ethereum.enable(); 
+window.ethereum.enable();
 
 export const GlobalContext = createContext();
 
-function PopUp({setDisplayPopUp, setToken}) {
+function PopUp({setDisplayPopUp, setToken, dstChain}) {
+  const availavleTokens = SupportedBlockchainsData[dstChain.id].tokens.map((token) => {
+    return (
+      <div key={token.name}>
+        <button className="token" onClick={() => {
+          setToken(token);
+          setDisplayPopUp(false);
+        }}>
+          <img className="token-logo" src={token.logo}/>
+          <p>{token.name}</p>
+        </button>
+      </div>
+    )
+  })
   return (
     <div className="pop-up">
       <img className="close" src={cross} alt="close" onClick={() => setDisplayPopUp(false)}/>
       <h1>Swap to</h1>
-      <button className="token" onClick={() => {
-        setToken({name: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=025"});
-        setDisplayPopUp(false);
-      }}>
-        <img className="token-logo" src="https://cryptologos.cc/logos/tether-usdt-logo.png?v=025"/>
-        <p>USDT</p>
-      </button>
-      <button className="token" onClick={() => {
-        setToken({name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=025"});
-        setDisplayPopUp(false);
-      }}>
-        <img className="token-logo" src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=025"/>
-        <p>USDC</p>
-      </button>
+      {availavleTokens}
     </div>
   )
 }
@@ -72,14 +73,15 @@ export function MainPage() {
     logo: "https://cryptologos.cc/logos/avalanche-avax-logo.png?v=025", 
     id: "43114"
   });
-  const [token, setToken] = useState({
-    name: "USDT", 
-    logo: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=025"
-  });
+  const [token, setToken] = useState(
+    SupportedBlockchainsData[dstChain.id].tokens[0]
+  );
   
   return (
     <GlobalContext.Provider value={[web3]}>
       <div className="main">
+        <Link className="link" to="/about">About</Link>
+        <Link className="link" to="/contacts">Contacts</Link>
         <div className="wrapper">
           <button className="choose-token" onClick={() => setDisplayPopUp(true)}>
             <img className="token-logo" src={token.logo}/>
@@ -90,6 +92,7 @@ export function MainPage() {
             <PopUp 
               setDisplayPopUp={setDisplayPopUp}
               setToken={setToken}
+              dstChain={dstChain}
             /> : null
           }
           <button className="choose-token" onClick={() => setDisplayChains(true)}>
@@ -103,7 +106,7 @@ export function MainPage() {
               setDstChain={setDstChain}
             /> : null
           }
-          <button className="swap" onClick={() => sendTransaction(web3, walletAddress, token.name, dstChain.id)}>
+          <button className="swap" onClick={() => sendTransaction(web3, walletAddress, token, dstChain.id)}>
             <p>Swap</p>
           </button>
         </div>

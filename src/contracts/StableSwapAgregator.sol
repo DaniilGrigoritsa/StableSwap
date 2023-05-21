@@ -18,6 +18,16 @@ interface UniswapV3Router {
         returns (uint256 amountOut);
 }
 
+interface UniswapV2Router {
+    function swapExactTokensForTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+}
+
 interface StargateRouter {
     struct lzTxObj {
         uint256 dstGasForCall;
@@ -47,13 +57,18 @@ interface IERC20 {
 
 contract StableSwapAgregator {
     address private OWNER;
-    uint256 public SLIPPAGE = 999;
-    address private immutable uniswapV3Router;
+    uint256 public SLIPPAGE;
+    address private immutable uniswapV2Router;
     address public immutable stargateRouterAddress;
 
-    constructor(address _uniswapV3Router, address _stargateRouterAddress) {
+    constructor(
+        uint256 slippage,
+        address _uniswapV2Router, 
+        address _stargateRouterAddress
+    ) {
         OWNER = msg.sender;
-        uniswapV3Router = _uniswapV3Router;
+        SLIPPAGE = slippage;
+        uniswapV2Router = _uniswapV2Router;
         stargateRouterAddress = _stargateRouterAddress;
     }
 
@@ -68,35 +83,29 @@ contract StableSwapAgregator {
         bytes[] calldata datas, 
         bytes calldata stargateSwapData
     ) external payable {
-        uint256 amountOut = 0;
+        uint256 amount = 0;
         for(uint8 i = 0; i < datas.length; ) {
             (
                 address tokenIn,
-                uint24 fee,
-                uint256 amountOutMinimum,
-                uint160 sqrtPriceLimitX96
-            ) = abi.decode(datas[i], (address, uint24, uint256, uint160));
+                uint256 amountOutMinimum
+            ) = abi.decode(datas[i], (address, uint256));
             IERC20 token = IERC20(tokenIn);
-            token.transfer(address(this), token.balanceOf(msg.sender));
-            uint256 balance = token.balanceOf(address(this));
-            token.approve(uniswapV3Router, balance);
-            UniswapV3Router.ExactInputSingleParams memory params = UniswapV3Router.ExactInputSingleParams(
-                tokenIn, 
-                tokenOut, 
-                fee,
-                address(this),
-                block.timestamp,
-                balance,
-                amountOutMinimum,
-                sqrtPriceLimitX96
+            uint256 balance = token.balanceOf(msg.sender);
+            token.transfer(address(this), balance);
+            token.approve(uniswapV2Router, balance);
+            address[] memory path;
+            path[0] = tokenIn;
+            path[1] = tokenOut;
+            uint256[] memory amounts = UniswapV2Router(uniswapV2Router).swapExactTokensForTokens(
+                balance, amountOutMinimum, path, to, block.timestamp
             );
-            amountOut += UniswapV3Router(uniswapV3Router).exactInputSingle(params);
+            amount += amounts[1];
             unchecked { i++; }
         }
         if (bytes32(stargateSwapData) != bytes32("0x")) {
             stargateStableSwap(tokenOut, stargateSwapData);
         }
-        else IERC20(tokenOut).transfer(to, amountOut);
+        else IERC20(tokenOut).transfer(to, amount);
     }
 
     function stargateStableSwap(

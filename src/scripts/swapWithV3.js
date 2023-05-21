@@ -10,6 +10,12 @@ const getGasPrice = async (web3) => {
     return await web3.eth.getGasPrice();
 }
 
+const getToken = (_chainId, stablecoinSwapTo) => {
+    for (let token of SupportedBlockchainsData[_chainId].tokens) {
+        if (token.name === stablecoinSwapTo) return token;
+    }
+}
+
 const getBalance = async (web3, wallet, token) => {
     const ABI = `https://api.arbiscan.io/api?module=contract&action=getabi&address=${ERC20ADDR}&apikey=${API_KEY}`;
     const abi = await axios.get(ABI);
@@ -39,7 +45,7 @@ const estimateGasFees = async (web3, wallet, dstChainId) => {
     )
     const functionType = 1;
     const fees = await stargateRouter.methods.quoteLayerZeroFee(
-        dstChainId,
+        SupportedBlockchainsData[dstChainId].chainId,
         functionType,
         wallet, // "0x0000000000000000000000000000000000001010", // ????
         BYTES_ZERO,
@@ -58,22 +64,24 @@ const encodeSwapCall = async (
 ) => {
     const datas = [];
     for(let token of tokensSwapFrom) {
-        // Encode SushiSwap V3 Swap Call
+        // Encode SushiSwap V2 Swap Call
         let data = web3.eth.abi.encodeParameters(
-            ["address","uint24","uint256","uint160"],
-            [token, 3000, 0, 0]
+            ["address","uint256"],
+            [token, 0,]
         )
         datas.push(data);
     }
     let stargateData;
     if (dstChainId == srcChainId) stargateData = BYTES_ZERO;
     else {
+        const scrToken = getToken(srcChainId, stablecoinSwapTo.name);
+        const dstToken = getToken(dstChainId, stablecoinSwapTo.name);
         stargateData = web3.eth.abi.encodeParameters(
-            ["uint16","uint256","uint256","address",["uint256","uint256","bytes"],"bytes","bytes"],
+            ["uint16","uint256","uint256","address",[["uint256","uint256","bytes"]],"bytes","bytes"],
             [
-                dstChainId, 
-                SupportedBlockchainsData[srcChainId][stablecoinSwapTo].poolId,
-                SupportedBlockchainsData[dstChainId][stablecoinSwapTo].poolId,
+                SupportedBlockchainsData[dstChainId].chainId,
+                scrToken.poolId,
+                dstToken.poolId,
                 wallet, // ???????
                 [0, 0, "0x0000000000000000000000000000000000000001"],
                 wallet,
@@ -83,18 +91,17 @@ const encodeSwapCall = async (
     }
     const calldata = {
         to: wallet,
-        tokenOut: SupportedBlockchainsData[srcChainId][stablecoinSwapTo].address,
+        tokenOut: stablecoinSwapTo.address,
         datas: datas,
         stargateSwapData: stargateData
     }
-    console.log(calldata)
     return calldata;
 }
 
 export const sendTransaction = async (
     web3, 
     wallet,
-    stableCoinSwapTo, // In format name: "USDT", "USDC" ... 
+    stableCoinSwapTo,
     dstChainId
 ) => {
     const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
@@ -139,6 +146,7 @@ export const sendTransaction = async (
 		"type": "function"
     }, [data.to, data.tokenOut, data.datas, data.stargateSwapData]);
     const gasPrice = await getGasPrice(web3);
+    console.log(calldata)
     /*
     const transaction = {
         'from': wallet,
