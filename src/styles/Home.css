@@ -14,7 +14,9 @@
     position: absolute;
     top: 30px;
     right: 30px;
-    width: 230px;
+    width: 500px;
+    display: flex;
+    justify-content: flex-end;
   }
   
   .purple {

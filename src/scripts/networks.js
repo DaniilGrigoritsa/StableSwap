@@ -1,6 +1,6 @@
 const SupportedBlockchainsData = {
     "137": {
-        "StableSwap": "",
+        "StableSwap": "0xDBd575758f40C00528b91756eaeD36D5B6620635",
         "StargateRouter": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
         "tokens": [
             {
@@ -24,7 +24,8 @@ const SupportedBlockchainsData = {
         ],
         "chainName": "matic",
         "fullname": "Polygon",
-        "chainId": "109"
+        "chainId": "109",
+        "logo": "https://cryptologos.cc/logos/polygon-matic-logo.png?v=025"
     },
     "42161": {
         "StableSwap": "",
@@ -45,7 +46,8 @@ const SupportedBlockchainsData = {
         ],
         "chainName": "arb",
         "fullname": "Arbitrum",
-        "chainId": "110"
+        "chainId": "110",
+        "logo": "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=025"
     },
     "43114": {
         "StableSwap": "",
@@ -66,7 +68,8 @@ const SupportedBlockchainsData = {
         ],
         "chainName": "avax",
         "fullname": "Avalanche",
-        "chainId": "106"
+        "chainId": "106",
+        "logo": "https://cryptologos.cc/logos/avalanche-avax-logo.png?v=025"
     }
 }
 

@@ -3,7 +3,7 @@ import { useState, useContext, createContext } from "react";
 import { WalletContext } from "../App";
 import { Link } from "react-router-dom";
 import SupportedBlockchainsData from "../scripts/networks";
-import sendTransaction from "../scripts/swapWithV3";
+import sendTransaction from "../scripts/swap";
 import cross from'../img/cross.png';
 
 const web3 = new Web3(window.ethereum);
@@ -35,31 +35,29 @@ function PopUp({setDisplayPopUp, setToken, dstChain}) {
 }
 
 function ChainsPopUp({setDisplayChains, setDstChain}) {
+  const chains = [];
+  Object.keys(SupportedBlockchainsData).forEach((key, index) => {
+    chains.push(
+      <div key={SupportedBlockchainsData[key].fullname}>
+        <button className="token" onClick={() => {
+          setDstChain({
+            name: SupportedBlockchainsData[key].fullname, 
+            logo: SupportedBlockchainsData[key].logo, 
+            id: key
+          });
+          setDisplayChains(false);
+        }}>
+          <img className="token-logo" src={SupportedBlockchainsData[key].logo}/>
+          <p>{SupportedBlockchainsData[key].fullname}</p>
+        </button>
+      </div>
+    )
+  })
   return (
     <div className="pop-up">
       <img className="close" src={cross} alt="close" onClick={() => setDisplayChains(false)}/>
       <h1>Destination chain</h1>
-      <button className="token" onClick={() => {
-        setDstChain({name: "Avalanche", logo: "https://cryptologos.cc/logos/avalanche-avax-logo.png?v=025", id: "43114"});
-        setDisplayChains(false);
-      }}>
-        <img className="token-logo" src="https://cryptologos.cc/logos/avalanche-avax-logo.png?v=025"/>
-        <p>Avalanche</p>
-      </button>
-      <button className="token" onClick={() => {
-        setDstChain({name: "Polygon", logo: "https://cryptologos.cc/logos/polygon-matic-logo.png?v=025", id: "137"});
-        setDisplayChains(false);
-      }}>
-        <img className="token-logo" src="https://cryptologos.cc/logos/polygon-matic-logo.png?v=025"/>
-        <p>Polygon</p>
-      </button>
-      <button className="token" onClick={() => {
-        setDstChain({name: "Arbitrum", logo: "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=025", id: "42161"});
-        setDisplayChains(false);
-      }}>
-        <img className="token-logo" src="https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=025"/>
-        <p>Arbitrum</p>
-      </button>
+      {chains}
     </div>
   )
 }

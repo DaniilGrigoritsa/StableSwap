@@ -27,14 +27,17 @@ const getBalance = async (web3, wallet, token) => {
     return balance;
 }
 
-const getTokensSwapFrom = async (wallet, chainId) => {
+const getTokensSwapFrom = async (wallet, tokenOut, chainId) => {
     const url = `https://api.debank.com/token/balance_list?user_addr=${wallet}&chain=${chainId}`;
     const response = await axios.get(url);
+    console.log(response)
     const tokenAddresses = [];
     response.data.data.map((tokenAddress) => {
-        if (tokenAddress.id.length == "42") tokenAddresses.push(tokenAddress.id);
+        if (tokenAddress.id.length == "42" && tokenAddress.id != tokenOut) {
+            tokenAddresses.push(tokenAddress.id);
+        }
     });
-    console.log(tokenAddresses)
+    console.log("Token addresses: ", tokenAddresses)
     return tokenAddresses;
 }
 
@@ -47,7 +50,7 @@ const estimateGasFees = async (web3, wallet, dstChainId) => {
     const fees = await stargateRouter.methods.quoteLayerZeroFee(
         SupportedBlockchainsData[dstChainId].chainId,
         functionType,
-        wallet, // "0x0000000000000000000000000000000000001010", // ????
+        wallet,
         BYTES_ZERO,
         [0, 0, "0x0000000000000000000000000000000000000001"]
     ).call();
@@ -62,6 +65,7 @@ const encodeSwapCall = async (
     srcChainId,
     dstChainId
 ) => {
+    console.log("Stable coin swap to", stablecoinSwapTo)
     const datas = [];
     for(let token of tokensSwapFrom) {
         // Encode SushiSwap V2 Swap Call
@@ -82,7 +86,7 @@ const encodeSwapCall = async (
                 SupportedBlockchainsData[dstChainId].chainId,
                 scrToken.poolId,
                 dstToken.poolId,
-                wallet, // ???????
+                wallet,
                 [0, 0, "0x0000000000000000000000000000000000000001"],
                 wallet,
                 BYTES_ZERO
@@ -90,7 +94,6 @@ const encodeSwapCall = async (
         )
     }
     const calldata = {
-        to: wallet,
         tokenOut: stablecoinSwapTo.address,
         datas: datas,
         stargateSwapData: stargateData
@@ -104,9 +107,12 @@ export const sendTransaction = async (
     stableCoinSwapTo,
     dstChainId
 ) => {
+    // May be choosed by user from UI, now hardcoded 
+    const slippage = 5;
     const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
     const tokensSwapFrom = await getTokensSwapFrom(
         wallet, 
+        stableCoinSwapTo.address,
         SupportedBlockchainsData[chainId].chainName
     );
     const data = await encodeSwapCall(
@@ -123,6 +129,11 @@ export const sendTransaction = async (
 				"internalType": "address",
 				"name": "to",
 				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "slippage",
+				"type": "uint256"
 			},
 			{
 				"internalType": "address",
@@ -144,7 +155,7 @@ export const sendTransaction = async (
 		"outputs": [],
 		"stateMutability": "payable",
 		"type": "function"
-    }, [data.to, data.tokenOut, data.datas, data.stargateSwapData]);
+    }, [wallet, slippage, data.tokenOut, data.datas, data.stargateSwapData]);
     const gasPrice = await getGasPrice(web3);
     console.log(calldata)
     /*
