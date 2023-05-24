@@ -1,11 +1,11 @@
-// import dotenv from 'dotenv'
+// import * as dotenv from "dotenv";
 import axios from "axios";
 import SupportedBlockchainsData from "./networks.js";
 import StargateRouterAbi from "../interfaces/StargateRouter.json";
 
 // dotenv.config();
 
-const API_KEY = "";
+const API_KEY = "XT4GTWMD4Y9YI9ISXQSFH2J697IMRHW253";
 const ERC20ADDR = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const BYTES_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
