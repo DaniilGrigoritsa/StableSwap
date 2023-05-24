@@ -1,16 +1,12 @@
 {
-  "name": "1Inch-app",
+  "name": "Stable Swap",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@1inch/limit-order-protocol": "^2.0.4",
     "@rainbow-me/rainbowkit": "^1.0.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^14.2.0",
-    "@thirdweb-dev/auth": "^2.0.32",
-    "@thirdweb-dev/react": "^3.6.2",
-    "@thirdweb-dev/sdk": "^3.6.2",
     "ethers": "^5.6.8",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

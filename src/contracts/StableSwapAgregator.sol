@@ -11,6 +11,14 @@ interface UniswapV2Router {
     ) external returns (uint[] memory amounts);
 }
 
+interface SushiXSwap {
+    function cook(
+        uint8[] memory actions,
+        uint256[] memory values,
+        bytes[] memory datas
+    ) external payable;
+}
+
 interface StargateRouter {
     struct lzTxObj {
         uint256 dstGasForCall;
@@ -39,16 +47,20 @@ interface IERC20 {
 contract StableSwapAgregator {
     address private OWNER;
     uint256 public SLIPPAGE;
+    uint8 LEGACY_SWAP = 7;
+    address private sushiXSwap;
     address private immutable uniswapV2Router;
-    address public immutable stargateRouterAddress;
+    address private immutable stargateRouterAddress;
 
     constructor(
         uint256 slippage,
+        address _sushiXSwap,
         address _uniswapV2Router, 
         address _stargateRouterAddress
     ) {
         OWNER = msg.sender;
         SLIPPAGE = slippage;
+        sushiXSwap = _sushiXSwap;
         uniswapV2Router = _uniswapV2Router;
         stargateRouterAddress = _stargateRouterAddress;
     }
@@ -56,6 +68,19 @@ contract StableSwapAgregator {
     modifier ownerRestrict {
         require(OWNER == msg.sender, "Error: caller is not an OWNER");
         _;
+    }
+
+    function stableXSwapMulticall(
+        uint8[] memory actions,
+        uint256[] memory values,
+        bytes[] memory datas,
+        bytes calldata stargateSwapData
+    ) external payable {
+        SushiXSwap(sushiXSwap).cook(
+            actions,
+            values,
+            datas
+        );
     }
 
     function stableSwapMulticall(

@@ -1,10 +1,13 @@
+import dotenv from 'dotenv'
 import axios from "axios";
 import SupportedBlockchainsData from "./networks.js";
 import StargateRouterAbi from "../interfaces/StargateRouter.json";
 
-const API_KEY = "XT4GTWMD4Y9YI9ISXQSFH2J697IMRHW253";
+dotenv.config();
+
+const API_KEY = process.env.API_KEY;
 const ERC20ADDR = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
-const BYTES_ZERO = "0x";
+const BYTES_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 const getGasPrice = async (web3) => {
     return await web3.eth.getGasPrice();
