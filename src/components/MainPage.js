@@ -1,9 +1,9 @@
 import Web3 from "web3";
-import { useState, useContext, createContext } from "react";
+import { useState, useContext, createContext, useEffect } from "react";
 import { WalletContext } from "../App";
 import { Link } from "react-router-dom";
 import SupportedBlockchainsData from "../scripts/networks";
-import sendTransaction from "../scripts/swap";
+import utils from "../scripts/swap";
 import cross from'../img/cross.png';
 
 const web3 = new Web3(window.ethereum);
@@ -62,6 +62,22 @@ function ChainsPopUp({setDisplayChains, setDstChain}) {
   )
 }
 
+const operateStableSwap = async (
+  walletAddress,
+  token,
+  dstChainId,
+  slippage
+) => {
+  const data = await utils.createCalldata( 
+    web3, 
+    walletAddress,
+    token,
+    dstChainId,
+    slippage
+  );
+  await utils.sendTransaction(web3, walletAddress, dstChainId, data);
+}
+
 export function MainPage() {
   const walletAddress = useContext(WalletContext);
   const [displayPopUp, setDisplayPopUp] = useState(false);
@@ -74,12 +90,40 @@ export function MainPage() {
   const [token, setToken] = useState(
     SupportedBlockchainsData[dstChain.id].tokens[0]
   );
+  const [calldata, setCalldata] = useState("0x");
+  // Choosed by user, now hardcoded
+  const [slippage, setSlippage] = useState(5);
+  const [tokenList, setTokenList] = useState([]);
+  const [totalBalanseUSD, setTotalBalance] = useState(0);
+  const [chainId, setChainId] = useState();
+
+  useEffect(() => {
+    setChainId(window.ethereum.chainId);
+  }, [])
+
+  useEffect(() => {
+    const getBalance = async () => {
+      const balance = await utils.getTotalWalletBalanceInUSD(
+        web3,
+        walletAddress
+      );
+      setTotalBalance(balance);
+      console.log("Total balance: ", totalBalanseUSD);
+    }
+    const _chainId = window.ethereum.chainId;
+    console.log("Chain id: ", _chainId)
+    if (_chainId != chainId) {
+      setChainId(_chainId);
+      getBalance();
+    }
+  });
   
   return (
     <GlobalContext.Provider value={[web3]}>
       <div className="main">
         <Link className="link" to="/about">About</Link>
         <Link className="link" to="/contacts">Contacts</Link>
+        <p>Total balance: {totalBalanseUSD}</p>
         <div className="wrapper">
           <button className="choose-token" onClick={() => setDisplayPopUp(true)}>
             <img className="token-logo" src={token.logo}/>
@@ -104,7 +148,15 @@ export function MainPage() {
               setDstChain={setDstChain}
             /> : null
           }
-          <button className="swap" onClick={() => sendTransaction(web3, walletAddress, token, dstChain.id)}>
+          <button 
+            className="swap" 
+            onClick={() => operateStableSwap( 
+              walletAddress, 
+              token, 
+              dstChain.id,
+              slippage
+            )}
+          >
             <p>Swap</p>
           </button>
         </div>

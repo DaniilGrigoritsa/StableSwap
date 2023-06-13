@@ -52,6 +52,8 @@ contract StableSwapAgregator {
     address private immutable uniswapV2Router;
     address private immutable stargateRouterAddress;
 
+    // event Stable(address to, uint256 amount, bool crossChain);
+
     constructor(
         uint256 slippage,
         address _sushiXSwap,
@@ -71,6 +73,7 @@ contract StableSwapAgregator {
     }
 
     function stableXSwapMulticall(
+        address swapTo,
         uint8[] memory actions,
         uint256[] memory values,
         bytes[] memory datas,
@@ -81,6 +84,7 @@ contract StableSwapAgregator {
             values,
             datas
         );
+        stargateStableSwap(swapTo, stargateSwapData);
     }
 
     function stableSwapMulticall(
@@ -110,8 +114,12 @@ contract StableSwapAgregator {
         }
         if (bytes32(stargateSwapData) != bytes32("0x")) {
             stargateStableSwap(tokenOut, stargateSwapData);
+            // emit Stable(tokenOut, amount, false);
         }
-        else IERC20(tokenOut).transfer(to, amount);
+        else {
+            IERC20(tokenOut).transfer(to, amount);
+            // emit Stable(tokenOut, amount, true);
+        }
     }
 
     function stargateStableSwap(

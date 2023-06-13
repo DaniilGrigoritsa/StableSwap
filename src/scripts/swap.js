@@ -2,6 +2,7 @@
 import axios from "axios";
 import SupportedBlockchainsData from "./networks.js";
 import StargateRouterAbi from "../interfaces/StargateRouter.json";
+// import Aggregator from "../interfaces/Aggregator.json";
 
 // dotenv.config();
 
@@ -9,8 +10,26 @@ const API_KEY = "XT4GTWMD4Y9YI9ISXQSFH2J697IMRHW253";
 const ERC20ADDR = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const BYTES_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
+
+const estimateGas = async (web3, user, calldata) => {
+    const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
+    await web3.eth.estimateGas({
+        from: user, 
+        data: calldata,
+        to: SupportedBlockchainsData[chainId].StableSwap
+    }, (err, estimatedGas) => {
+        if (err) console.log(err);
+        else return estimatedGas;
+    });
+}
+
+
 const getGasPrice = async (web3) => {
     return await web3.eth.getGasPrice();
+}
+
+const getBalanceInUSD = async () => {
+    
 }
 
 const getToken = (_chainId, stablecoinSwapTo) => {
@@ -44,12 +63,27 @@ const getTokensSwapFrom = async (wallet, tokenOut, chainId) => {
     return tokenAddresses;
 }
 
-const estimateGasFees = async (web3, wallet, dstChainId) => {
+const getTotalWalletBalanceInUSD = async (web3, wallet) => {
+    const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
+    const chainName = SupportedBlockchainsData[chainId].chainName;
+    const url = `https://api.debank.com/token/balance_list?user_addr=${wallet}&chain=${chainName}`;
+    const response = await axios.get(url);
+    // console.log(response)
+    let totalBalance = 0;
+    response.data.data.map((tokenAddress) => {
+        totalBalance += tokenAddress.amount * tokenAddress.price;
+    });
+    console.log("Total balance: ", totalBalance)
+    return totalBalance;
+}
+
+const estimateStargateGasFees = async (web3, wallet, dstChainId) => {
     const stargateRouter = await new web3.eth.Contract(
         StargateRouterAbi, 
         SupportedBlockchainsData[dstChainId].StargateRouter
     )
-    const functionType = 1;
+    console.log(stargateRouter)
+    const functionType = 1; // Default hardcoded value
     const fees = await stargateRouter.methods.quoteLayerZeroFee(
         SupportedBlockchainsData[dstChainId].chainId,
         functionType,
@@ -57,7 +91,7 @@ const estimateGasFees = async (web3, wallet, dstChainId) => {
         BYTES_ZERO,
         [0, 0, "0x0000000000000000000000000000000000000001"]
     ).call();
-    return fees[0];
+    return web3.utils.toHex(fees[0]);
 } 
 
 const encodeSwapCall = async (
@@ -104,14 +138,13 @@ const encodeSwapCall = async (
     return calldata;
 }
 
-export const sendTransaction = async (
+const createCalldata = async (
     web3, 
     wallet,
     stableCoinSwapTo,
-    dstChainId
+    dstChainId,
+    slippage
 ) => {
-    // May be choosed by user from UI, now hardcoded 
-    const slippage = 5;
     const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
     const tokensSwapFrom = await getTokensSwapFrom(
         wallet, 
@@ -159,22 +192,25 @@ export const sendTransaction = async (
 		"stateMutability": "payable",
 		"type": "function"
     }, [wallet, slippage, data.tokenOut, data.datas, data.stargateSwapData]);
-    const gasPrice = await getGasPrice(web3);
-    console.log(calldata)
-    /*
+    // const gasPrice = await getGasPrice(web3);
+    console.log("Calldata", calldata)
+    return calldata;
+}
+
+const sendTransaction = async (web3, wallet, dstChainId, calldata) => {
+    const chainId = web3.utils.hexToNumber(window.ethereum.chainId);
     const transaction = {
         'from': wallet,
         'to': SupportedBlockchainsData[chainId].StableSwap,
-        'value': chainId == dstChainId ? "0" : await estimateGasFees(web3, wallet, dstChainId),
-        'gasLimit': "0x0100000", // ????
-        'gasPrice': web3.utils.toWei(gasPrice, 'gwei'),
+        'value': chainId == dstChainId ? "0x" : await estimateStargateGasFees(web3, wallet, dstChainId),
         'data': calldata
     }
     await window.ethereum.request({
         method: "eth_sendTransaction",
         params: [transaction],
-    }).then((result) => {console.log(result)}).catch((error) => {console.log(error)}); 
-    */
+    }).then((result) => {console.log(result)}).catch((error) => {console.log(error)});
 }
 
-export default sendTransaction;
+export default { sendTransaction, createCalldata, estimateGas, getTotalWalletBalanceInUSD };
+
+
